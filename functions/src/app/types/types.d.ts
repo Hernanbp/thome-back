@@ -3,9 +3,9 @@ export interface User {
   email: string;
   name: string;
   surname: string;
-  registrationNumber: number;
+  registrationNumber?: number;
   phoneNumber: number;
-  address: string;
+  address?: string;
   roles: string[];
   status: "COMPLETED" | "PENDING";
 }

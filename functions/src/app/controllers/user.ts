@@ -2,6 +2,35 @@ import { Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
 import InitFirebase from "../config/db/init-firebase";
 import { User } from "../types/types";
+import { createUser, loginGoogle } from "../helpers";
+
+interface CustomRequest extends Request {
+  payload?: {
+    email?: string;
+  };
+  email?: string;
+}
+
+const googleLogin = async (req: CustomRequest, res: Response) => {
+  if (req.payload) {
+    req.email = req.payload["email"];
+
+    const db = await InitFirebase().firestore();
+    const snapshot = await db
+      .collection("users")
+      .where("email", "==", req.email)
+      .get();
+
+    if (snapshot.empty) {
+      const email = req.email ?? "";
+      if (email) {
+        await createUser(email);
+      }
+    }
+  }
+  const token = await loginGoogle(req.email);
+  return res.status(200).json(token);
+};
 
 const getUsers = async (req: Request, res: Response) => {
   try {
@@ -55,8 +84,6 @@ const updateUser = async (req: Request, res: Response) => {
       registrationNumber: req.body.registrationNumber,
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
-      roles: req.body.roles,
-      status: req.body.status,
     };
 
     // Remove properties with undefined values to avoid overwriting with undefined
@@ -66,7 +93,21 @@ const updateUser = async (req: Request, res: Response) => {
         updatedUserFields[key] === undefined && delete updatedUserFields[key]
     );
 
-    console.log("Updated User Fields:", updatedUserFields);
+    const existingUserSnapshot = await updateUser.get();
+    const existingUserData = existingUserSnapshot.data() as User;
+
+    // Check if name, surname, and phoneNumber are present in the request or already in the document
+    if (
+      (req.body.name && req.body.surname && req.body.phoneNumber) ||
+      (existingUserData &&
+        existingUserData.name &&
+        existingUserData.surname &&
+        existingUserData.phoneNumber)
+    ) {
+      updatedUserFields.status = "COMPLETED";
+    } else {
+      updatedUserFields.status = "PENDING";
+    }
 
     await updateUser.update(updatedUserFields);
 
@@ -99,4 +140,4 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getUsers, getUser, updateUser, deleteUser };
+export { getUsers, getUser, updateUser, deleteUser, googleLogin };
