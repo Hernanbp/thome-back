@@ -1,5 +1,11 @@
 import admin from "firebase-admin";
-import { CLIENT_EMAIL, PRIVATE_KEY, PROJECT_ID } from "../config";
+import * as storage from "@google-cloud/storage";
+import {
+  CLIENT_EMAIL,
+  PRIVATE_KEY,
+  PROJECT_ID,
+  PUBLIC_BUCKET,
+} from "../config";
 
 let initializedApp: admin.app.App;
 
@@ -17,4 +23,20 @@ const InitFirebase = () => {
   return initializedApp;
 };
 
-export default InitFirebase;
+const storageBucket = PUBLIC_BUCKET; // Reemplaza con el ID de tu bucket de Firebase Storage
+
+const InitStorage = () => {
+  const storageClient = new storage.Storage({
+    projectId: PROJECT_ID,
+    credentials: {
+      client_email: CLIENT_EMAIL,
+      private_key: PRIVATE_KEY.replace(/\\n/g, "\n"),
+    },
+  });
+
+  const bucket = storageClient.bucket(storageBucket);
+
+  return bucket;
+};
+
+export { InitFirebase, InitStorage };

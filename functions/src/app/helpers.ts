@@ -1,4 +1,4 @@
-import InitFirebase from "./config/db/init-firebase";
+import { InitFirebase } from "./config/db/init-firebase";
 import { v4 as uuidv4 } from "uuid";
 import jwt from "jsonwebtoken";
 import { User } from "./types/types";
@@ -49,4 +49,14 @@ async function loginGoogle(email?: string) {
   return { accessToken };
 }
 
-export { findUserByEmail, createUser, loginGoogle };
+const giveCurrentDateTime = () => {
+  const today = new Date();
+  const date =
+    today.getFullYear() + "-" + (today.getMonth() + 1) + "-" + today.getDate();
+  const time =
+    today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  const dateTime = date + " " + time;
+  return dateTime;
+};
+
+export { findUserByEmail, createUser, loginGoogle, giveCurrentDateTime };

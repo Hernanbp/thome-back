@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
-import InitFirebase from "../config/db/init-firebase";
+import { InitFirebase } from "../config/db/init-firebase";
 import { User } from "../types/types";
 import { createUser, loginGoogle } from "../helpers";
 
