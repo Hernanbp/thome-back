@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  createProperty,
   deleteProperty,
   getProperties,
   getProperty,
@@ -9,6 +10,7 @@ import {
 
 const router = Router();
 
+router.post("/create", createProperty);
 router.post("/upload", upload);
 router.get("/", getProperties);
 router.get("/:id", getProperty);
