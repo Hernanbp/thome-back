@@ -2,8 +2,11 @@ import busboy from "busboy";
 import { Request, Response } from "express";
 import { InitFirebase, InitStorage } from "../config/db/init-firebase";
 import { giveCurrentDateTime } from "../helpers";
+import { Property } from "../types/types";
 // import { v4 as uuidv4 } from "uuid";
 
+const db = InitFirebase().firestore();
+const propertyRef = db.collection("properties");
 //@ts-ignore
 const upload = async (req: Request, res: Response) => {
   try {
@@ -50,9 +53,6 @@ const upload = async (req: Request, res: Response) => {
 
 const getProperties = async (req: Request, res: Response) => {
   try {
-    const db = InitFirebase().firestore();
-    const propertyRef = db.collection("properties");
-
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
 
@@ -78,4 +78,54 @@ const getProperties = async (req: Request, res: Response) => {
   }
 };
 
-export { upload, getProperties };
+const getProperty = async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.params.id;
+    const property = await propertyRef.doc(propertyId).get();
+
+    if (!property.exists) {
+      return res.status(404).send("Property not found");
+    }
+
+    const propertyData = property.data() as Property;
+    propertyData.id = property.id;
+    return res.status(200).send(propertyData);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+const updateProperty = async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.params.id;
+    const property = await propertyRef.doc(propertyId).get();
+
+    if (!property.exists) {
+      return res.status(404).send("Property not found");
+    }
+
+    const updateProperty = propertyRef.doc(propertyId);
+    await updateProperty.update({ ...req.body });
+
+    const updatedPropertySnapshot = await updateProperty.get();
+    const updatedProperty = updatedPropertySnapshot.data() as Property;
+    return res.status(200).send(updatedProperty);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+const deleteProperty = async (req: Request, res: Response) => {
+  try {
+    const propertyId = req.params.id;
+    await propertyRef.doc(propertyId).delete();
+
+    return res.status(200).send("Property successfully deleted");
+  } catch (error) {
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+export { upload, getProperties, deleteProperty, getProperty, updateProperty };
