@@ -32,7 +32,7 @@ const googleLogin = async (req: CustomRequest, res: Response) => {
   return res.status(200).json(token);
 };
 
-const getUsers = async (req: Request, res: Response) => {
+const getAllUsers = async (req: Request, res: Response) => {
   try {
     const db = await InitFirebase().firestore();
     const snapshot = await db.collection("users").get();
@@ -51,7 +51,7 @@ const getUsers = async (req: Request, res: Response) => {
   }
 };
 
-const getUser = async (req: Request, res: Response) => {
+const getUserByToken = async (req: Request, res: Response) => {
   try {
     const db = await InitFirebase().firestore();
     //@ts-ignore
@@ -140,4 +140,4 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getUsers, getUser, updateUser, deleteUser, googleLogin };
+export { getAllUsers, getUserByToken, updateUser, deleteUser, googleLogin };

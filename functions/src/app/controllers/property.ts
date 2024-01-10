@@ -98,7 +98,7 @@ const createProperty = async (req: Request, res: Response) => {
   }
 };
 
-const getProperties = async (req: Request, res: Response) => {
+const getAllProperties = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
@@ -125,7 +125,7 @@ const getProperties = async (req: Request, res: Response) => {
   }
 };
 
-const getProperty = async (req: Request, res: Response) => {
+const getPropertyById = async (req: Request, res: Response) => {
   try {
     const propertyId = req.params.id;
     const property = await propertyRef.doc(propertyId).get();
@@ -199,8 +199,8 @@ const deleteProperty = async (req: Request, res: Response) => {
 export {
   createProperty,
   upload,
-  getProperties,
+  getAllProperties,
   deleteProperty,
-  getProperty,
+  getPropertyById,
   updateProperty,
 };

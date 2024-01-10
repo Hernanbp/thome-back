@@ -3,8 +3,8 @@ import { verifyJwt } from "../middlewares/verifyJwt";
 import { googleMiddleware } from "../middlewares/googleMiddleware";
 import {
   deleteUser,
-  getUser,
-  getUsers,
+  getAllUsers,
+  getUserByToken,
   googleLogin,
   updateUser,
 } from "../controllers/user";
@@ -19,8 +19,8 @@ router.get("/protected", verifyJwt, (req, res) => {
 });
 
 router.post("/googleLogin", googleMiddleware, googleLogin);
-router.get("/", verifyJwt, hasRole, getUsers);
-router.get("/getUser", verifyJwt, getUser);
+router.get("/getAllUsers", verifyJwt, hasRole, getAllUsers);
+router.get("/getUserByToken", verifyJwt, getUserByToken);
 router.patch("/update", verifyJwt, updateUser);
 router.delete("/delete", verifyJwt, deleteUser);
 
