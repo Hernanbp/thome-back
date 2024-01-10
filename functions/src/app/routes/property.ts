@@ -12,7 +12,7 @@ const router = Router();
 
 router.post("/create", createProperty);
 router.post("/upload", upload);
-router.get("/", getAllProperties);
+router.get("/getAllProperties", getAllProperties);
 router.get("/:id", getPropertyById);
 router.patch("/update/:id", updateProperty);
 router.delete("/delete/:id", deleteProperty);
