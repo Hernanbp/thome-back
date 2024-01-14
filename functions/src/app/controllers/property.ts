@@ -13,15 +13,22 @@ const upload = async (req: Request, res: Response) => {
   try {
     const bb = busboy({ headers: req.headers });
 
+    let productData: any = {};
+    let images: string[] = [];
+
     bb.on("file", (name, file, info) => {
       const { filename, encoding, mimeType } = info;
       const bucket = InitStorage();
-      const storagePath = `files/images/${
-        filename + "    " + giveCurrentDateTime()
-      }`;
+      const storagePath = `files/images/${filename}_${giveCurrentDateTime()}`;
       const fileUpload = bucket.file(storagePath);
 
       file.pipe(fileUpload.createWriteStream({ contentType: mimeType }));
+
+      file.on("end", async () => {
+        // Obtén la URL de la imagen después de cargarla en Firebase Storage
+        const imageUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
+        images.push(imageUrl);
+      });
 
       console.log(
         `File [${name}]: filename: %j, encoding: %j, mimeType: %j`,
@@ -37,12 +44,36 @@ const upload = async (req: Request, res: Response) => {
           console.log(`File [${name}] done`);
         });
     });
+
     bb.on("field", (name, val, info) => {
       console.log(`Field [${name}]: value: %j`, val);
+
+      // Verifica si el campo tiene la estructura "nombre[propiedad]"
+      const matches = name.match(/(\w+)\[(\w+)\]/);
+
+      if (matches) {
+        const [, nestedProperty, nestedKey] = matches;
+
+        // Asegúrate de que el objeto nested exista
+        productData[nestedProperty] = productData[nestedProperty] || {};
+
+        // Asigna el valor anidado al objeto nested
+        productData[nestedProperty][nestedKey] = val;
+      } else {
+        // Si no hay estructura especial, asigna directamente al objeto productData
+        productData[name] = val;
+      }
     });
-    bb.on("close", () => {
-      console.log("Done parsing form!");
-      res.status(200).send({ message: "Done parsing form!" });
+
+    bb.on("finish", async () => {
+      // Ahora que la imagen ha sido cargada, puedes asociarla al producto
+      productData.images = images;
+
+      // Crea un nuevo documento en Firestore para el producto
+      const productRef = await db.collection("products").add(productData);
+      console.log(`Producto creado con ID: ${productRef.id}`);
+
+      res.status(200).send({ message: "Producto creado correctamente" });
     });
 
     bb.end(req.body);
