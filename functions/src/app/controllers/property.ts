@@ -13,11 +13,39 @@ const upload = async (req: Request, res: Response) => {
   try {
     const bb = busboy({ headers: req.headers });
 
-    let productData: any = {};
     let images: string[] = [];
+    const productData: Property = {
+      ownerId: "", // Set ownerId based on your logic
+      purpose: "sell",
+      propertyType: "",
+      price: {
+        ars: 0,
+        usd: 0,
+      },
+      hasExpenses: false,
+      expensesPrice: {
+        ars: 0,
+        usd: 0,
+      },
+      address: {
+        street: "",
+        number: 0,
+        postalCode: "",
+      },
+      isActive: true,
+      squareMeters: 0,
+      coveredAreaSquareMeters: 0,
+      rooms: 0,
+      bedrooms: 0,
+      bathrooms: 0,
+      parkingSpaces: 0,
+      amenities: [],
+      propertyBonus: [],
+      images: images,
+    };
 
     bb.on("file", (name, file, info) => {
-      const { filename, encoding, mimeType } = info;
+      const { filename, mimeType } = info;
       const bucket = InitStorage();
       const storagePath = `files/images/${filename}_${giveCurrentDateTime()}`;
       const fileUpload = bucket.file(storagePath);
@@ -25,53 +53,31 @@ const upload = async (req: Request, res: Response) => {
       file.pipe(fileUpload.createWriteStream({ contentType: mimeType }));
 
       file.on("end", async () => {
-        // Obtén la URL de la imagen después de cargarla en Firebase Storage
         const imageUrl = `https://storage.googleapis.com/${bucket.name}/${storagePath}`;
         images.push(imageUrl);
       });
-
-      console.log(
-        `File [${name}]: filename: %j, encoding: %j, mimeType: %j`,
-        filename,
-        encoding,
-        mimeType
-      );
-      file
-        .on("data", (data) => {
-          console.log(`File [${name}] got ${data?.length} bytes`);
-        })
-        .on("close", () => {
-          console.log(`File [${name}] done`);
-        });
     });
 
     bb.on("field", (name, val, info) => {
-      console.log(`Field [${name}]: value: %j`, val);
-
-      // Verifica si el campo tiene la estructura "nombre[propiedad]"
       const matches = name.match(/(\w+)\[(\w+)\]/);
 
       if (matches) {
         const [, nestedProperty, nestedKey] = matches;
 
-        // Asegúrate de que el objeto nested exista
+        //@ts-ignore
         productData[nestedProperty] = productData[nestedProperty] || {};
 
-        // Asigna el valor anidado al objeto nested
+        //@ts-ignore
         productData[nestedProperty][nestedKey] = val;
       } else {
-        // Si no hay estructura especial, asigna directamente al objeto productData
+        //@ts-ignore
         productData[name] = val;
       }
     });
 
     bb.on("finish", async () => {
-      // Ahora que la imagen ha sido cargada, puedes asociarla al producto
       productData.images = images;
-
-      // Crea un nuevo documento en Firestore para el producto
-      const productRef = await db.collection("products").add(productData);
-      console.log(`Producto creado con ID: ${productRef.id}`);
+      await db.collection("properties").add(productData);
 
       res.status(200).send({ message: "Producto creado correctamente" });
     });
