@@ -8,14 +8,13 @@ import { v4 as uuidv4 } from "uuid";
 const db = InitFirebase().firestore();
 const propertyRef = db.collection("properties");
 
-//@ts-ignore
 const upload = async (req: Request, res: Response) => {
   try {
     const bb = busboy({ headers: req.headers });
 
-    let images: string[] = [];
+    const images: string[] = [];
     const productData: Property = {
-      ownerId: "", // Set ownerId based on your logic
+      ownerId: "",
       purpose: "sell",
       propertyType: "",
       price: {
@@ -58,20 +57,33 @@ const upload = async (req: Request, res: Response) => {
       });
     });
 
-    bb.on("field", (name, val, info) => {
+    type AllowedFields = keyof Property;
+
+    bb.on("field", (name, val) => {
       const matches = name.match(/(\w+)\[(\w+)\]/);
 
       if (matches) {
         const [, nestedProperty, nestedKey] = matches;
 
-        //@ts-ignore
-        productData[nestedProperty] = productData[nestedProperty] || {};
-
-        //@ts-ignore
-        productData[nestedProperty][nestedKey] = val;
+        if (
+          //@ts-ignore
+          productData[nestedProperty] &&
+          //@ts-ignore
+          typeof productData[nestedProperty] === "object"
+        ) {
+          //@ts-ignore
+          productData[nestedProperty][nestedKey] = val;
+        } else {
+          console.error(`Invalid nested property: ${nestedProperty}`);
+        }
       } else {
-        //@ts-ignore
-        productData[name] = val;
+        // Check if the field is allowed
+        if (Object.keys(productData).includes(name as AllowedFields)) {
+          //@ts-ignore
+          productData[name as AllowedFields] = val;
+        } else {
+          console.error(`Invalid field: ${name}`);
+        }
       }
     });
 
@@ -79,10 +91,12 @@ const upload = async (req: Request, res: Response) => {
       productData.images = images;
       await db.collection("properties").add(productData);
 
-      res.status(200).send({ message: "Producto creado correctamente" });
+      res.status(200).send(productData);
     });
 
     bb.end(req.body);
+
+    return;
   } catch (error) {
     console.error(error);
     return res.status(500).send("Error uploading image");

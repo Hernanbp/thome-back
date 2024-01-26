@@ -18,6 +18,9 @@ router.get("/protected", verifyJwt, (req, res) => {
   res.json({ message: "This is a protected route", decodedToken });
 });
 
+router.get("/test", (req, res) => {
+  return res.status(200).send("todo ok");
+});
 router.post("/googleLogin", googleMiddleware, googleLogin);
 router.get("/getAllUsers", verifyJwt, hasRole, getAllUsers);
 router.get("/getUserByToken", verifyJwt, getUserByToken);
