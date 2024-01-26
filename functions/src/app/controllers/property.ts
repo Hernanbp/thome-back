@@ -247,7 +247,22 @@ const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
+const getData = async (req: Request, res: Response) => {
+  await propertyRef
+    .orderBy("price.ars")
+    .startAt(0)
+    .limit(10)
+    .get()
+    .then((snapshot) =>
+      snapshot.forEach((elem) => {
+        console.log(elem.data().ownerId);
+      })
+    );
+  return res.status(200).json("todo ok");
+};
+
 export {
+  getData,
   createProperty,
   upload,
   getAllProperties,
