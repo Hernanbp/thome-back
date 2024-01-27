@@ -153,10 +153,11 @@ const getAllProperties = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+    const field = req.query.field || "price.ars";
 
     const startAfterDoc = req.query.startAfterDoc as string | undefined;
 
-    let query = propertyRef.orderBy("price").limit(pageSize);
+    let query = propertyRef.orderBy(field.toString()).limit(pageSize);
 
     if (startAfterDoc) {
       const startAfterSnapshot = await propertyRef.doc(startAfterDoc).get();
@@ -167,7 +168,10 @@ const getAllProperties = async (req: Request, res: Response) => {
     }
 
     const querySnapshot = await query.get();
-    const properties = querySnapshot.docs.map((doc: any) => doc.data());
+    const properties = querySnapshot.docs.map((doc: any) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
 
     res.json({ properties, nextPage: querySnapshot.docs.length === pageSize });
   } catch (error) {
@@ -247,22 +251,7 @@ const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
-const getData = async (req: Request, res: Response) => {
-  await propertyRef
-    .orderBy("price.ars")
-    .startAt(0)
-    .limit(10)
-    .get()
-    .then((snapshot) =>
-      snapshot.forEach((elem) => {
-        console.log(elem.data().ownerId);
-      })
-    );
-  return res.status(200).json("todo ok");
-};
-
 export {
-  getData,
   createProperty,
   upload,
   getAllProperties,
