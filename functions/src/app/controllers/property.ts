@@ -14,6 +14,9 @@ const upload = async (req: Request, res: Response) => {
     const bb = busboy({ headers: req.headers });
 
     const images: string[] = [];
+    const amenities: string[] = [];
+    const propertyBonus: string[] = [];
+
     const productData: Property = {
       ownerId: "",
       purpose: "sell",
@@ -39,8 +42,8 @@ const upload = async (req: Request, res: Response) => {
       bedrooms: 0,
       bathrooms: 0,
       parkingSpaces: 0,
-      amenities: [],
-      propertyBonus: [],
+      amenities: amenities,
+      propertyBonus: propertyBonus,
       images: images,
     };
 
@@ -66,36 +69,49 @@ const upload = async (req: Request, res: Response) => {
 
     type AllowedFields = keyof Property;
 
-    bb.on("field", (name, val) => {
-      const matches = name.match(/(\w+)\[(\w+)\]/);
-
+    const handleNestedField = (obj: any, name: string, val: any) => {
+      const matches = name.match(/^(\w+)\[(\w+)\]$/);
       if (matches) {
         const [, nestedProperty, nestedKey] = matches;
-
-        if (
-          //@ts-ignore
-          productData[nestedProperty] &&
-          //@ts-ignore
-          typeof productData[nestedProperty] === "object"
-        ) {
-          //@ts-ignore
-          productData[nestedProperty][nestedKey] = val;
+        if (obj[nestedProperty] && typeof obj[nestedProperty] === "object") {
+          const isNumeric =
+            !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
+          obj[nestedProperty][nestedKey] = isNumeric ? parseFloat(val) : val;
         } else {
           console.error(`Invalid nested property: ${nestedProperty}`);
         }
-      } else {
-        // Check if the field is allowed
-        if (Object.keys(productData).includes(name as AllowedFields)) {
-          //@ts-ignore
-          productData[name as AllowedFields] = val;
+      }
+    };
+
+    bb.on("field", (name, val) => {
+      handleNestedField(productData, name, val);
+
+      if (name === "propertyBonus") {
+        propertyBonus.push(val);
+      } else if (name === "amenities") {
+        amenities.push(val);
+        //@ts-ignore
+      } else if (Object.keys(productData).includes(name as AllowedFields)) {
+        const isNumeric = !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
+        const isBoolean = val === "true" || val === "false";
+
+        if (isNumeric) {
+          productData[name as AllowedFields] = parseFloat(val);
+        } else if (isBoolean) {
+          productData[name as AllowedFields] = val === "true";
         } else {
-          console.error(`Invalid field: ${name}`);
+          productData[name as AllowedFields] = val;
         }
+      } else {
+        console.error(`Invalid field: ${name}`);
       }
     });
 
     bb.on("finish", async () => {
       productData.images = images;
+      productData.amenities = amenities;
+      productData.propertyBonus = propertyBonus;
+
       await db.collection("properties").add(productData);
 
       res.status(200).send(productData);

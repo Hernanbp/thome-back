@@ -39,4 +39,5 @@ export interface Property {
   amenities?: string[];
   propertyBonus?: string[];
   images: string[];
+  [key: string]: any;
 }
