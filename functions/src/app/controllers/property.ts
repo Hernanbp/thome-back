@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 import { InitFirebase, InitStorage } from "../config/db/init-firebase";
 import { giveCurrentDateTime } from "../helpers";
 import { Property } from "../types/types";
-import { v4 as uuidv4 } from "uuid";
 
 const db = InitFirebase().firestore();
 const propertyRef = db.collection("properties");
@@ -126,52 +125,6 @@ const upload = async (req: Request, res: Response) => {
   }
 };
 
-const createProperty = async (req: Request, res: Response) => {
-  try {
-    const propertyId = uuidv4();
-
-    const requestBody = req.body;
-
-    const newProperty: Property = {
-      id: propertyId,
-      ownerId: requestBody.ownerId,
-      purpose: requestBody.purpose,
-      propertyType: requestBody.propertyType,
-      price: {
-        ars: requestBody.price?.ars,
-        usd: requestBody.price?.usd,
-      },
-      hasExpenses: requestBody.hasExpenses,
-      expensesPrice: {
-        ars: requestBody.expensesPrice?.ars || null,
-        usd: requestBody.expensesPrice?.usd || null,
-      },
-      address: {
-        street: requestBody.address?.street || "",
-        number: requestBody.address?.number || 0,
-        postalCode: requestBody.address?.postalCode || "",
-      },
-      isActive: true,
-      squareMeters: requestBody.squareMeters || 0,
-      coveredAreaSquareMeters: requestBody.coveredAreaSquareMeters || 0,
-      rooms: requestBody.rooms || 0,
-      bedrooms: requestBody.bedrooms || 0,
-      bathrooms: requestBody.bathrooms || 0,
-      parkingSpaces: requestBody.parkingSpaces || 0,
-      amenities: requestBody.amenities || [],
-      propertyBonus: requestBody.propertyBonus || [],
-      images: requestBody.images || [],
-    };
-
-    await propertyRef.doc(propertyId).set(newProperty);
-
-    return res.status(201).json(newProperty);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send("Internal Server Error");
-  }
-};
-
 const getAllProperties = async (req: Request, res: Response) => {
   try {
     const page = parseInt(req.query.page as string, 10) || 1;
@@ -275,7 +228,6 @@ const deleteProperty = async (req: Request, res: Response) => {
 };
 
 export {
-  createProperty,
   upload,
   getAllProperties,
   deleteProperty,

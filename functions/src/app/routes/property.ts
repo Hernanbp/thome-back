@@ -1,6 +1,5 @@
 import { Router } from "express";
 import {
-  createProperty,
   deleteProperty,
   getAllProperties,
   getPropertyById,
@@ -10,7 +9,6 @@ import {
 
 const router = Router();
 
-router.post("/create", createProperty);
 router.post("/upload", upload);
 router.get("/getAllProperties", getAllProperties);
 router.get("/getPropertyById/:id", getPropertyById);
