@@ -1,8 +1,7 @@
-// import { getDownloadURL } from "firebase-admin/storage";
 import busboy from "busboy";
 import { Request, Response } from "express";
 import { InitFirebase, InitStorage } from "../config/db/init-firebase";
-import { giveCurrentDateTime } from "../helpers";
+import { giveCurrentDateTime, handleNestedField } from "../helpers";
 import { Property } from "../types/types";
 
 const db = InitFirebase().firestore();
@@ -67,20 +66,6 @@ const upload = async (req: Request, res: Response) => {
     });
 
     type AllowedFields = keyof Property;
-
-    const handleNestedField = (obj: any, name: string, val: any) => {
-      const matches = name.match(/^(\w+)\[(\w+)\]$/);
-      if (matches) {
-        const [, nestedProperty, nestedKey] = matches;
-        if (obj[nestedProperty] && typeof obj[nestedProperty] === "object") {
-          const isNumeric =
-            !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
-          obj[nestedProperty][nestedKey] = isNumeric ? parseFloat(val) : val;
-        } else {
-          console.error(`Invalid nested property: ${nestedProperty}`);
-        }
-      }
-    };
 
     bb.on("field", (name, val) => {
       handleNestedField(productData, name, val);

@@ -59,4 +59,23 @@ const giveCurrentDateTime = () => {
   return dateTime;
 };
 
-export { findUserByEmail, createUser, loginGoogle, giveCurrentDateTime };
+const handleNestedField = (obj: any, name: string, val: any) => {
+  const matches = name.match(/^(\w+)\[(\w+)\]$/);
+  if (matches) {
+    const [, nestedProperty, nestedKey] = matches;
+    if (obj[nestedProperty] && typeof obj[nestedProperty] === "object") {
+      const isNumeric = !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
+      obj[nestedProperty][nestedKey] = isNumeric ? parseFloat(val) : val;
+    } else {
+      console.error(`Invalid nested property: ${nestedProperty}`);
+    }
+  }
+};
+
+export {
+  findUserByEmail,
+  createUser,
+  loginGoogle,
+  giveCurrentDateTime,
+  handleNestedField,
+};
