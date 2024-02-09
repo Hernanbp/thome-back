@@ -6,6 +6,7 @@ import { Property } from "../types/types";
 
 const db = InitFirebase().firestore();
 const propertyRef = db.collection("properties");
+type AllowedFields = keyof Property;
 
 const upload = async (req: Request, res: Response) => {
   try {
@@ -64,8 +65,6 @@ const upload = async (req: Request, res: Response) => {
         images.push(finalUrl);
       });
     });
-
-    type AllowedFields = keyof Property;
 
     bb.on("field", (name, val) => {
       handleNestedField(productData, name, val);
@@ -159,6 +158,62 @@ const getPropertyById = async (req: Request, res: Response) => {
   }
 };
 
+const update = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const bb = busboy({ headers: req.headers });
+
+    const existingDoc = (await propertyRef.doc(id).get()).data() as Property;
+    console.log(existingDoc);
+
+    const updates: Partial<Property> = { ...existingDoc };
+
+    // bb.on("file", async (name, file, info) => {
+    //   // Manejar la actualización de imágenes si es necesario
+    // });
+
+    bb.on("field", (name, val) => {
+      handleNestedField(updates, name, val);
+
+      if (name === "propertyBonus") {
+        existingDoc.propertyBonus?.push(val);
+      } else if (name === "amenities") {
+        existingDoc.amenities?.push(val);
+        //@ts-ignore
+      } else if (Object.keys(updates).includes(name as AllowedFields)) {
+        const isNumeric = !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
+        const isBoolean = val === "true" || val === "false";
+
+        if (isNumeric) {
+          updates[name as AllowedFields] = parseFloat(val);
+        } else if (isBoolean) {
+          updates[name as AllowedFields] = val === "true";
+        } else {
+          updates[name as AllowedFields] = val;
+        }
+      } else {
+        console.error(`Invalid field: ${name}`);
+      }
+    });
+
+    bb.on("finish", async () => {
+      // Actualizar la propiedad en la base de datos
+      console.log(updates);
+      await db.collection("properties").doc(id).update(updates);
+
+      res.status(200).send(updates);
+    });
+
+    bb.end(req.body);
+
+    return;
+  } catch (error) {
+    console.error(error);
+    return res.status(500).send("Error updating property");
+  }
+};
+
 const updateProperty = async (req: Request, res: Response) => {
   try {
     const propertyId = req.params.id;
@@ -213,6 +268,7 @@ const deleteProperty = async (req: Request, res: Response) => {
 };
 
 export {
+  update,
   upload,
   getAllProperties,
   deleteProperty,
