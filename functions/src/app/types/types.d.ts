@@ -13,6 +13,7 @@ export interface User {
 export interface Property {
   id?: string;
   ownerId: string;
+  description: string;
   purpose: "sell" | "rent";
   propertyType: string;
   price: {

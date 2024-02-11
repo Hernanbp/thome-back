@@ -18,6 +18,7 @@ const upload = async (req: Request, res: Response) => {
 
     const productData: Property = {
       ownerId: "",
+      description: "",
       purpose: "sell",
       propertyType: "",
       price: {
@@ -169,9 +170,25 @@ const update = async (req: Request, res: Response) => {
 
     const updates: Partial<Property> = { ...existingDoc };
 
-    // bb.on("file", async (name, file, info) => {
-    //   // Manejar la actualización de imágenes si es necesario
-    // });
+    bb.on("file", async (name, file, info) => {
+      const { filename, mimeType } = info;
+      const bucket = InitStorage();
+      const storagePath = `files/images/${filename}_${giveCurrentDateTime()}`;
+      const fileUpload = bucket.file(storagePath);
+
+      const url = await fileUpload.getSignedUrl({
+        action: "read",
+        expires: "03-01-2100",
+      });
+
+      const finalUrl = url.toString();
+
+      file.pipe(fileUpload.createWriteStream({ contentType: mimeType }));
+
+      file.on("end", async () => {
+        existingDoc.images.push(finalUrl);
+      });
+    });
 
     bb.on("field", (name, val) => {
       handleNestedField(updates, name, val);
@@ -214,48 +231,6 @@ const update = async (req: Request, res: Response) => {
   }
 };
 
-const updateProperty = async (req: Request, res: Response) => {
-  try {
-    const propertyId = req.params.id;
-    const property = await propertyRef.doc(propertyId).get();
-
-    if (!property.exists) {
-      return res.status(404).send("Property not found");
-    }
-
-    const existingProperty = property.data() as Property;
-
-    // Validar que los campos de la solicitud coincidan con la interfaz Property
-    const updatedFields: Partial<Property> = req.body;
-
-    for (const field in updatedFields) {
-      if (!(field in existingProperty)) {
-        return res.status(400).send(`Invalid field: ${field}`);
-      }
-    }
-
-    // Actualizar solo los campos permitidos
-    const updateData: Partial<Property> = {};
-
-    for (const field in updatedFields) {
-      if (field in existingProperty) {
-        //@ts-ignore
-        updateData[field as keyof Property] = updatedFields[field];
-      }
-    }
-
-    const updateProperty = propertyRef.doc(propertyId);
-    await updateProperty.update(updateData);
-
-    const updatedPropertySnapshot = await updateProperty.get();
-    const updatedProperty = updatedPropertySnapshot.data() as Property;
-    return res.status(200).send(updatedProperty);
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send("Internal Server Error");
-  }
-};
-
 const deleteProperty = async (req: Request, res: Response) => {
   try {
     const propertyId = req.params.id;
@@ -267,11 +242,4 @@ const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
-export {
-  update,
-  upload,
-  getAllProperties,
-  deleteProperty,
-  getPropertyById,
-  updateProperty,
-};
+export { update, upload, getAllProperties, deleteProperty, getPropertyById };
