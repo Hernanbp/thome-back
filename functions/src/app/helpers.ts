@@ -36,6 +36,8 @@ async function loginGoogle(email?: string) {
   const user = await snapshot.get();
   const userData = user.docs[0].data() as User;
 
+  const data = userData;
+
   let { id, roles, status } = userData;
 
   const accessToken = jwt.sign(
@@ -46,7 +48,7 @@ async function loginGoogle(email?: string) {
     }
   );
 
-  return { accessToken };
+  return { accessToken, data };
 }
 
 const giveCurrentDateTime = () => {

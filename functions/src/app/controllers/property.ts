@@ -166,7 +166,6 @@ const update = async (req: Request, res: Response) => {
     const bb = busboy({ headers: req.headers });
 
     const existingDoc = (await propertyRef.doc(id).get()).data() as Property;
-    console.log(existingDoc);
 
     const updates: Partial<Property> = { ...existingDoc };
 
@@ -215,8 +214,6 @@ const update = async (req: Request, res: Response) => {
     });
 
     bb.on("finish", async () => {
-      // Actualizar la propiedad en la base de datos
-      console.log(updates);
       await db.collection("properties").doc(id).update(updates);
 
       res.status(200).send(updates);
