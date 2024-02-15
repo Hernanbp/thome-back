@@ -14,7 +14,6 @@ const upload = async (req: Request, res: Response) => {
 
     const images: string[] = [];
     const amenities: string[] = [];
-    const propertyBonus: string[] = [];
 
     const productData: Property = {
       ownerId: "",
@@ -43,7 +42,7 @@ const upload = async (req: Request, res: Response) => {
       bathrooms: 0,
       parkingSpaces: 0,
       amenities: amenities,
-      propertyBonus: propertyBonus,
+      propertyBonus: "",
       images: images,
     };
 
@@ -70,11 +69,6 @@ const upload = async (req: Request, res: Response) => {
     bb.on("field", (name, val) => {
       handleNestedField(productData, name, val);
 
-      if (name === "propertyBonus") {
-        const bonuses = val.split(",").map((bonus) => bonus.trim());
-        propertyBonus.push(...bonuses);
-      }
-
       if (name === "amenities") {
         const amenitiesList = val.split(",").map((amenity) => amenity.trim());
         amenities.push(...amenitiesList);
@@ -98,7 +92,6 @@ const upload = async (req: Request, res: Response) => {
     bb.on("finish", async () => {
       productData.images = images;
       productData.amenities = amenities;
-      productData.propertyBonus = propertyBonus;
 
       await db.collection("properties").add(productData);
 
@@ -196,12 +189,11 @@ const update = async (req: Request, res: Response) => {
     bb.on("field", (name, val) => {
       handleNestedField(updates, name, val);
 
-      if (name === "propertyBonus") {
-        existingDoc.propertyBonus?.push(val);
-      } else if (name === "amenities") {
+      if (name === "amenities") {
         existingDoc.amenities?.push(val);
-        //@ts-ignore
-      } else if (Object.keys(updates).includes(name as AllowedFields)) {
+      }
+      //@ts-ignore
+      if (Object.keys(updates).includes(name as AllowedFields)) {
         const isNumeric = !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
         const isBoolean = val === "true" || val === "false";
 

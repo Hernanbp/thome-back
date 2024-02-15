@@ -38,7 +38,7 @@ export interface Property {
   bathrooms: number;
   parkingSpaces: number;
   amenities?: string[];
-  propertyBonus?: string[];
+  propertyBonus?: string;
   images: string[];
   [key: string]: any;
 }
