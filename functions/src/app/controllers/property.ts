@@ -71,9 +71,13 @@ const upload = async (req: Request, res: Response) => {
       handleNestedField(productData, name, val);
 
       if (name === "propertyBonus") {
-        propertyBonus.push(val);
-      } else if (name === "amenities") {
-        amenities.push(val);
+        const bonuses = val.split(",").map((bonus) => bonus.trim());
+        propertyBonus.push(...bonuses);
+      }
+
+      if (name === "amenities") {
+        const amenitiesList = val.split(",").map((amenity) => amenity.trim());
+        amenities.push(...amenitiesList);
         //@ts-ignore
       } else if (Object.keys(productData).includes(name as AllowedFields)) {
         const isNumeric = !isNaN(parseFloat(val)) && isFinite(parseFloat(val));
