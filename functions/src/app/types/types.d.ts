@@ -40,5 +40,6 @@ export interface Property {
   amenities?: string[];
   propertyBonus?: string;
   images: string[];
+  favourites: string[];
   [key: string]: any;
 }

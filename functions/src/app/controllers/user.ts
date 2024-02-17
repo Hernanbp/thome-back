@@ -71,6 +71,16 @@ const getUserByToken = async (req: Request, res: Response) => {
   }
 };
 
+//TODO: GET OWNER BY ID
+// const getOwnerById = async (req: Request, res: Response) => {
+//   try {
+//     const db = await InitFirebase().firestore();
+//     const ownerId = req.params.id;
+//     const document = await db.collection("users").doc(ownerId);
+//     let user = await document.get();
+//   } catch (error) {}
+// };
+
 const updateUser = async (req: Request, res: Response) => {
   try {
     const db = await InitFirebase().firestore();
@@ -140,4 +150,11 @@ const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-export { getAllUsers, getUserByToken, updateUser, deleteUser, googleLogin };
+export {
+  getAllUsers,
+  getUserByToken,
+  // getOwnerById,
+  updateUser,
+  deleteUser,
+  googleLogin,
+};

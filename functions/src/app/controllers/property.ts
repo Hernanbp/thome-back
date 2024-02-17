@@ -8,18 +8,33 @@ const db = InitFirebase().firestore();
 const propertyRef = db.collection("properties");
 type AllowedFields = keyof Property;
 
-const upload = async (req: Request, res: Response) => {
+const createProperty = async (req: Request, res: Response) => {
   try {
     const bb = busboy({ headers: req.headers });
 
     const images: string[] = [];
     const amenities: string[] = [];
+    const ownerId = (req as any).decoded.id;
+    const userDoc = await db.collection("users").doc(ownerId).get();
+    const user = userDoc.data();
+
+    if (!user) {
+      return res.status(404).send("User does not exist");
+    }
+
+    //@ts-ignore
+    const role = user.roles;
+
+    if (!role.map((r: any) => r.toLowerCase()).includes("owner")) {
+      return res.status(503).send("Invalid permission");
+    }
 
     const productData: Property = {
-      ownerId: "",
+      ownerId: ownerId,
       description: "",
       purpose: "sell",
       propertyType: "",
+      favourites: [],
       price: {
         ars: 0,
         usd: 0,
@@ -156,7 +171,25 @@ const getPropertyById = async (req: Request, res: Response) => {
   }
 };
 
-const update = async (req: Request, res: Response) => {
+const getPropertiesByOwner = async (req: Request, res: Response) => {
+  try {
+    const ownerId = (req as any).decoded.id;
+    const documents = await propertyRef.where("ownerId", "==", ownerId).get();
+
+    const properties = documents.docs.map((doc) => doc.data());
+
+    if (properties.length === 0) {
+      return res.status(200).send("No properties found for this owner.");
+    }
+
+    return res.status(200).send(properties);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
+
+const updateProperty = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -235,4 +268,11 @@ const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
-export { update, upload, getAllProperties, deleteProperty, getPropertyById };
+export {
+  updateProperty,
+  createProperty,
+  getAllProperties,
+  deleteProperty,
+  getPropertyById,
+  getPropertiesByOwner,
+};
