@@ -72,14 +72,24 @@ const getUserByToken = async (req: Request, res: Response) => {
 };
 
 //TODO: GET OWNER BY ID
-// const getOwnerById = async (req: Request, res: Response) => {
-//   try {
-//     const db = await InitFirebase().firestore();
-//     const ownerId = req.params.id;
-//     const document = await db.collection("users").doc(ownerId);
-//     let user = await document.get();
-//   } catch (error) {}
-// };
+const getOwnerById = async (req: Request, res: Response) => {
+  try {
+    const ownerId = req.params.id;
+    const db = await InitFirebase().firestore();
+    const user = await db.collection("users").doc(ownerId).get();
+
+    if (!user.exists) {
+      return res.status(404).send("User not found");
+    }
+
+    const userData = user.data() as User;
+    userData.id = user.id;
+    return res.status(200).send(userData);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send("Internal Server Error");
+  }
+};
 
 const updateUser = async (req: Request, res: Response) => {
   try {
@@ -153,7 +163,7 @@ const deleteUser = async (req: Request, res: Response) => {
 export {
   getAllUsers,
   getUserByToken,
-  // getOwnerById,
+  getOwnerById,
   updateUser,
   deleteUser,
   googleLogin,

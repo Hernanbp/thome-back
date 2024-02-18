@@ -4,7 +4,7 @@ import { googleMiddleware } from "../middlewares/googleMiddleware";
 import {
   deleteUser,
   getAllUsers,
-  // getOwnerById,
+  getOwnerById,
   getUserByToken,
   googleLogin,
   updateUser,
@@ -25,10 +25,7 @@ router.get("/test", (req, res) => {
 router.post("/googleLogin", googleMiddleware, googleLogin);
 router.get("/getAllUsers", verifyJwt, hasRole, getAllUsers);
 router.get("/getUserByToken", verifyJwt, getUserByToken);
-
-//TODO: GET OWNER BY ID
-// router.get("/getOwnerById/:id", getOwnerById);
-
+router.get("/getOwnerById/:id", getOwnerById);
 router.patch("/update", verifyJwt, updateUser);
 router.delete("/delete", verifyJwt, deleteUser);
 
