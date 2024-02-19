@@ -7,6 +7,7 @@ export interface User {
   phoneNumber: number;
   address?: string;
   roles: string[];
+  favourites: string[];
   status: "COMPLETED" | "PENDING";
 }
 
@@ -40,6 +41,5 @@ export interface Property {
   amenities?: string[];
   propertyBonus?: string;
   images: string[];
-  favourites: string[];
   [key: string]: any;
 }

@@ -27,6 +27,7 @@ async function createUser(email: string) {
       email: email,
       roles: ["USER"],
       status: "PENDING",
+      favourites: [],
     });
 }
 

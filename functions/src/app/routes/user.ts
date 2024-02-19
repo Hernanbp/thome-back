@@ -6,6 +6,7 @@ import {
   getAllUsers,
   getOwnerById,
   getUserByToken,
+  getUserFavourites,
   googleLogin,
   updateUser,
 } from "../controllers/user";
@@ -26,6 +27,7 @@ router.post("/googleLogin", googleMiddleware, googleLogin);
 router.get("/getAllUsers", verifyJwt, hasRole, getAllUsers);
 router.get("/getUserByToken", verifyJwt, getUserByToken);
 router.get("/getOwnerById/:id", getOwnerById);
+router.get("/getUserFavourites", verifyJwt, getUserFavourites);
 router.patch("/update", verifyJwt, updateUser);
 router.delete("/delete", verifyJwt, deleteUser);
 

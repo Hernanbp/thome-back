@@ -34,7 +34,6 @@ const createProperty = async (req: Request, res: Response) => {
       description: "",
       purpose: "sell",
       propertyType: "",
-      favourites: [],
       price: {
         ars: 0,
         usd: 0,
