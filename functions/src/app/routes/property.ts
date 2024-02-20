@@ -8,10 +8,16 @@ import {
   getPropertiesByOwner,
 } from "../controllers/property";
 import { verifyJwt } from "../middlewares/verifyJwt";
+import { hasPermission } from "../middlewares/hasPermission";
 
 const router = Router();
 
-router.post("/createProperty", verifyJwt, createProperty);
+router.post(
+  "/createProperty",
+  verifyJwt,
+  hasPermission(["owner"]),
+  createProperty
+);
 router.get("/getAllProperties", getAllProperties);
 router.get("/getPropertyById/:id", getPropertyById);
 router.get("/getPropertiesByOwner", verifyJwt, getPropertiesByOwner);

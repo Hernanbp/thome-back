@@ -2,6 +2,7 @@ import { Router } from "express";
 import { verifyJwt } from "../middlewares/verifyJwt";
 import { googleMiddleware } from "../middlewares/googleMiddleware";
 import {
+  createUser,
   deleteUser,
   getAllUsers,
   getOwnerById,
@@ -10,7 +11,6 @@ import {
   googleLogin,
   updateUser,
 } from "../controllers/user";
-import { hasRole } from "../middlewares/hasRole";
 
 const router = Router();
 
@@ -23,8 +23,10 @@ router.get("/protected", verifyJwt, (req, res) => {
 router.get("/test", (req, res) => {
   return res.status(200).send("todo ok");
 });
+
+router.post("/createUser", verifyJwt, createUser);
 router.post("/googleLogin", googleMiddleware, googleLogin);
-router.get("/getAllUsers", verifyJwt, hasRole, getAllUsers);
+router.get("/getAllUsers", verifyJwt, getAllUsers);
 router.get("/getUserByToken", verifyJwt, getUserByToken);
 router.get("/getOwnerById/:id", getOwnerById);
 router.get("/getUserFavourites", verifyJwt, getUserFavourites);

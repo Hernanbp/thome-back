@@ -2,14 +2,43 @@ import { Request, Response } from "express";
 import { handleHttp } from "../utils/error.handle";
 import { InitFirebase } from "../config/db/init-firebase";
 import { User } from "../types/types";
-import { createUser, loginGoogle } from "../helpers";
-
+import { loginGoogle } from "../helpers";
+import jwt from "jsonwebtoken";
 interface CustomRequest extends Request {
   payload?: {
     email?: string;
   };
   email?: string;
 }
+
+const createUser = async (req: Request, res: Response) => {
+  const decoded = (req as any).decoded;
+
+  const email = decoded.email;
+  const status = "PENDING";
+  const roles = req.body.roles;
+
+  const db = await InitFirebase().firestore();
+  const userRef = await db.collection("users").add({
+    email: email,
+    status: status,
+    roles: roles,
+  });
+
+  const userId = userRef.id;
+
+  const data = { email, status, roles, userId };
+
+  const accessToken = jwt.sign(
+    { id: userId, email, status, roles },
+    process.env.ACCESS_TOKEN_SECRET as string,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
+    }
+  );
+
+  return res.status(200).send({ accessToken, data });
+};
 
 const googleLogin = async (req: CustomRequest, res: Response) => {
   if (req.payload) {
@@ -24,12 +53,21 @@ const googleLogin = async (req: CustomRequest, res: Response) => {
     if (snapshot.empty) {
       const email = req.email ?? "";
       if (email) {
-        await createUser(email);
+        const accessToken = jwt.sign(
+          { email, status: "PENDING" },
+          process.env.ACCESS_TOKEN_SECRET as string,
+          {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRATION,
+          }
+        );
+        return res.status(200).json(accessToken);
       }
+    } else {
+      const token = await loginGoogle(req.email);
+      return res.status(200).json(token);
     }
   }
-  const token = await loginGoogle(req.email);
-  return res.status(200).json(token);
+  return;
 };
 
 const getAllUsers = async (req: Request, res: Response) => {
@@ -186,6 +224,7 @@ const deleteUser = async (req: Request, res: Response) => {
 };
 
 export {
+  createUser,
   getAllUsers,
   getUserByToken,
   getOwnerById,

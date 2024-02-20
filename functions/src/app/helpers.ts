@@ -19,16 +19,11 @@ async function findUserByEmail(email?: string): Promise<any> {
 async function createUser(email: string) {
   const db = await InitFirebase().firestore();
   const userId = uuidv4();
-  await db
-    .collection("users")
-    .doc(userId)
-    .set({
-      id: userId,
-      email: email,
-      roles: ["USER"],
-      status: "PENDING",
-      favourites: [],
-    });
+  await db.collection("users").doc(userId).set({
+    id: userId,
+    email: email,
+    status: "PENDING",
+  });
 }
 
 async function loginGoogle(email?: string) {
@@ -37,7 +32,9 @@ async function loginGoogle(email?: string) {
   const user = await snapshot.get();
   const userData = user.docs[0].data() as User;
 
-  const data = userData;
+  const userId = user.docs[0].id;
+
+  const data = { ...userData, id: userId };
 
   let { id, roles, status } = userData;
 

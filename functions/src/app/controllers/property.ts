@@ -15,19 +15,6 @@ const createProperty = async (req: Request, res: Response) => {
     const images: string[] = [];
     const amenities: string[] = [];
     const ownerId = (req as any).decoded.id;
-    const userDoc = await db.collection("users").doc(ownerId).get();
-    const user = userDoc.data();
-
-    if (!user) {
-      return res.status(404).send("User does not exist");
-    }
-
-    //@ts-ignore
-    const role = user.roles;
-
-    if (!role.map((r: any) => r.toLowerCase()).includes("owner")) {
-      return res.status(503).send("Invalid permission");
-    }
 
     const productData: Property = {
       ownerId: ownerId,
