@@ -27,7 +27,7 @@ const createUser = async (req: Request, res: Response) => {
 
   const userId = userRef.id;
 
-  const data = { email, status, roles, userId };
+  const data = { email, status, roles, id: userId };
 
   const accessToken = jwt.sign(
     { id: userId, email, status, roles },
