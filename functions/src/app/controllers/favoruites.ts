@@ -4,15 +4,13 @@ import { giveCurrentDateTime } from "../helpers";
 
 const db = InitFirebase().firestore();
 const favouritesRef = db.collection("favourites");
-const propertiesRef = db.collection("properties");
-const usersRef = db.collection("users");
 
-const createFavourite = async (req: Request, res: Response) => {
+const addFavourite = async (req: Request, res: Response) => {
   //@ts-ignore
   const decoded = req.decoded;
 
   const userId = decoded.id;
-  const propertyId = req.body.propertyId;
+  const propertyId = req.params.id;
   const createdAt = giveCurrentDateTime();
 
   try {
@@ -32,6 +30,50 @@ const createFavourite = async (req: Request, res: Response) => {
   }
 };
 
-const getFavourites = async (req: Request, res: Response) => {};
+const removeFavourite = async (req: Request, res: Response) => {
+  //@ts-ignore
+  const userId = req.decoded.id;
+  const favouriteId = req.params.id;
 
-export { createFavourite };
+  try {
+    const favouriteRef = db.collection("favourites").doc(favouriteId);
+    const favouriteDoc = await favouriteRef.get();
+
+    if (!favouriteDoc.exists) {
+      return res.status(404).send("Favourite not found");
+    }
+
+    const favouriteData = favouriteDoc.data();
+    //@ts-ignore
+    if (favouriteData.userId !== userId) {
+      return res.status(403).send("Unauthorized");
+    }
+
+    await favouriteRef.delete();
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error("Error deleting favourite:", error);
+    return res.status(500).send("Internal server error");
+  }
+};
+
+const getFavourites = async (req: Request, res: Response) => {
+  //@ts-ignore
+  const userId = req.decoded.id;
+
+  try {
+    const favourites = await favouritesRef.where("userId", "==", userId).get();
+
+    const data = favourites.docs.map((doc) => {
+      const docData = doc.data();
+      return { id: doc.id, ...docData };
+    });
+
+    return res.status(200).send(data);
+  } catch (error) {
+    return res.status(500).send("Internal server error");
+  }
+};
+
+export { addFavourite, getFavourites, removeFavourite };

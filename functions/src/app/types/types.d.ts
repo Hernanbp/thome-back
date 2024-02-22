@@ -7,7 +7,6 @@ export interface User {
   phoneNumber: number;
   address?: string;
   roles: string[];
-  favourites: string[];
   status: "COMPLETED" | "PENDING";
 }
 

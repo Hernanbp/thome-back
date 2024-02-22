@@ -128,31 +128,6 @@ const getOwnerById = async (req: Request, res: Response) => {
   }
 };
 
-const getUserFavourites = async (req: Request, res: Response) => {
-  try {
-    const db = await InitFirebase().firestore();
-    const userId: string = (req as any).decoded?.id;
-    const document = await db.collection("users").doc(userId);
-    let user = (await document.get()).data();
-
-    if (!user) {
-      return res.status(404).send("User not found");
-    }
-
-    const favouritePropsIds = user.favourites || [];
-    const favouriteProps = await Promise.all(
-      favouritePropsIds.map(async (propId: string) => {
-        const propDoc = await db.collection("properties").doc(propId).get();
-        return propDoc.data();
-      })
-    );
-
-    return res.status(200).send(favouriteProps);
-  } catch (error) {
-    return res.status(500).send("Internal server error");
-  }
-};
-
 const updateUser = async (req: Request, res: Response) => {
   try {
     const db = await InitFirebase().firestore();
@@ -166,7 +141,6 @@ const updateUser = async (req: Request, res: Response) => {
       registrationNumber: req.body.registrationNumber,
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
-      favourites: req.body.favourites,
     };
 
     // Remove properties with undefined values to avoid overwriting with undefined
@@ -228,7 +202,6 @@ export {
   getAllUsers,
   getUserByToken,
   getOwnerById,
-  getUserFavourites,
   updateUser,
   deleteUser,
   googleLogin,
