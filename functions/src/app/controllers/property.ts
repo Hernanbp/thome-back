@@ -162,7 +162,10 @@ const getPropertiesByOwner = async (req: Request, res: Response) => {
     const ownerId = (req as any).decoded.id;
     const documents = await propertyRef.where("ownerId", "==", ownerId).get();
 
-    const properties = documents.docs.map((doc) => doc.data());
+    const properties = documents.docs.map((doc) => {
+      const docData = doc.data();
+      return { id: doc.id, ...docData };
+    });
 
     if (properties.length === 0) {
       return res.status(200).send("No properties found for this owner.");
