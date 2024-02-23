@@ -113,10 +113,46 @@ const getAllProperties = async (req: Request, res: Response) => {
     const page = parseInt(req.query.page as string, 10) || 1;
     const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
     const field = req.query.field || "price.ars";
-
     const startAfterDoc = req.query.startAfterDoc as string | undefined;
 
+    //filters
+    const purpose = req.query.purpose;
+    const propertyType = req.query.propertyType;
+    const squareMeters = Number(req.query.squareMeters);
+    const rooms = Number(req.query.rooms);
+    const bedrooms = Number(req.query.bedrooms);
+    let amenities = req.query.amenities;
+
     let query = propertyRef.orderBy(field.toString()).limit(pageSize);
+
+    if (purpose) {
+      query = query.where("purpose", "==", purpose);
+    }
+
+    if (propertyType) {
+      query = query.where("propertyType", "==", propertyType);
+    }
+
+    if (squareMeters) {
+      query = query.where("squareMeters", "==", squareMeters);
+    }
+
+    if (rooms) {
+      query = query.where("rooms", "==", rooms);
+    }
+
+    if (bedrooms) {
+      query = query.where("bedrooms", "==", bedrooms);
+    }
+
+    if (typeof amenities === "string") {
+      amenities = amenities.split(",");
+    }
+
+    //@ts-ignore
+    if (amenities !== undefined && amenities.length > 0) {
+      query = query.where("amenities", "array-contains-any", amenities);
+    }
 
     if (startAfterDoc) {
       const startAfterSnapshot = await propertyRef.doc(startAfterDoc).get();
@@ -127,7 +163,7 @@ const getAllProperties = async (req: Request, res: Response) => {
     }
 
     const querySnapshot = await query.get();
-    const properties = querySnapshot.docs.map((doc: any) => ({
+    let properties = querySnapshot.docs.map((doc: any) => ({
       id: doc.id,
       ...doc.data(),
     }));
