@@ -4,6 +4,7 @@ import { giveCurrentDateTime } from "../helpers";
 
 const db = InitFirebase().firestore();
 const favouritesRef = db.collection("favourites");
+const propertiesRef = db.collection("properties");
 
 const addFavourite = async (req: Request, res: Response) => {
   //@ts-ignore
@@ -65,10 +66,32 @@ const getFavourites = async (req: Request, res: Response) => {
   try {
     const favourites = await favouritesRef.where("userId", "==", userId).get();
 
-    const data = favourites.docs.map((doc) => {
-      const docData = doc.data();
-      return { id: doc.id, ...docData };
+    const favouritesData = favourites.docs.map((doc) => {
+      return { id: doc.id, ...doc.data() };
     });
+
+    //@ts-ignore
+    const propertyIds = favouritesData.map((fav) => fav.propertyId);
+    console.log("propertyIds:", propertyIds);
+
+    const propertiesQuery = await Promise.all(
+      propertyIds.map(async (propertyId) => {
+        const propertyDoc = await propertiesRef.doc(propertyId).get();
+        return { id: propertyDoc.id, ...propertyDoc.data() };
+      })
+    );
+
+    console.log("propertiesQuery:", propertiesQuery);
+
+    const data = favouritesData.map((fav) => {
+      const property = propertiesQuery.find(
+        //@ts-ignore
+        (prop) => prop.id === fav.propertyId
+      );
+      return { ...fav, property };
+    });
+
+    console.log(data);
 
     return res.status(200).send(data);
   } catch (error) {
