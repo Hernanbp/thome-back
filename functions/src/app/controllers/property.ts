@@ -223,6 +223,7 @@ const updateProperty = async (req: Request, res: Response) => {
     const existingDoc = (await propertyRef.doc(id).get()).data() as Property;
 
     const updates: Partial<Property> = { ...existingDoc };
+    const amenities: string[] = [];
 
     bb.on("file", async (name, file, info) => {
       const { filename, mimeType } = info;
@@ -248,7 +249,8 @@ const updateProperty = async (req: Request, res: Response) => {
       handleNestedField(updates, name, val);
 
       if (name === "amenities") {
-        existingDoc.amenities?.push(val);
+        const amenitiesList = val.split(",").map((amenity) => amenity.trim());
+        amenities.push(...amenitiesList);
       }
       //@ts-ignore
       if (Object.keys(updates).includes(name as AllowedFields)) {
@@ -268,6 +270,7 @@ const updateProperty = async (req: Request, res: Response) => {
     });
 
     bb.on("finish", async () => {
+      updates.amenities = amenities;
       await db.collection("properties").doc(id).update(updates);
 
       res.status(200).send(updates);
