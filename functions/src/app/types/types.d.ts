@@ -26,10 +26,13 @@ export interface Property {
     usd?: number;
   };
   address: {
+    province: string;
+    neighborhood: string;
     street: string;
     number: number;
     postalCode: string;
   };
+  geohash: string;
   isActive: boolean;
   squareMeters: number;
   coveredAreaSquareMeters: number;
@@ -40,5 +43,6 @@ export interface Property {
   amenities?: string[];
   propertyBonus?: string;
   images: string[];
+  tags: string[];
   [key: string]: any;
 }

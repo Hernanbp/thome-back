@@ -30,7 +30,10 @@ const createProperty = async (req: Request, res: Response) => {
         ars: 0,
         usd: 0,
       },
+      geohash: "",
       address: {
+        province: "",
+        neighborhood: "",
         street: "",
         number: 0,
         postalCode: "",
@@ -45,6 +48,7 @@ const createProperty = async (req: Request, res: Response) => {
       amenities: amenities,
       propertyBonus: "",
       images: images,
+      tags: [],
     };
 
     bb.on("file", async (name, file, info) => {
