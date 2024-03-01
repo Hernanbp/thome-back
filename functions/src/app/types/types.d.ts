@@ -1,5 +1,6 @@
 export interface User {
   id: string;
+  alias: string;
   email: string;
   name: string;
   surname: string;
@@ -32,10 +33,11 @@ export interface Property {
     number: number;
     postalCode: string;
   };
+  lat: string;
+  long: string;
   geohash: string;
   isActive: boolean;
   squareMeters: number;
-  coveredAreaSquareMeters: number;
   rooms: number;
   bedrooms: number;
   bathrooms: number;

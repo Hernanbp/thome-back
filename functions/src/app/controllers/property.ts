@@ -30,6 +30,8 @@ const createProperty = async (req: Request, res: Response) => {
         ars: 0,
         usd: 0,
       },
+      lat: "",
+      long: "",
       geohash: "",
       address: {
         province: "",
@@ -40,7 +42,6 @@ const createProperty = async (req: Request, res: Response) => {
       },
       isActive: true,
       squareMeters: 0,
-      coveredAreaSquareMeters: 0,
       rooms: 0,
       bedrooms: 0,
       bathrooms: 0,
@@ -97,6 +98,16 @@ const createProperty = async (req: Request, res: Response) => {
     bb.on("finish", async () => {
       productData.images = images;
       productData.amenities = amenities;
+
+      const tags = [
+        `propertyType ${productData.propertyType}`,
+        `rooms ${productData.rooms}`,
+        `bedrooms ${productData.bedrooms}`,
+        `amenities ${amenities.join(", ")}`,
+        `purpose ${productData.purpose}`,
+      ];
+
+      productData.tags = tags;
 
       await db.collection("properties").add(productData);
 

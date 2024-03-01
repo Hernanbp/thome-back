@@ -22,6 +22,7 @@ const createUser = async (req: Request, res: Response) => {
   const phoneNumber = req.body.phoneNumber;
   const registrationNumber = req.body.registrationNumber;
   const address = req.body.address;
+  const alias = req.body.alias;
 
   const db = await InitFirebase().firestore();
 
@@ -41,6 +42,7 @@ const createUser = async (req: Request, res: Response) => {
       ...userRefData,
       registrationNumber: registrationNumber,
       address: address,
+      alias: alias,
     };
   }
 
