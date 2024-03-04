@@ -319,7 +319,8 @@ const all = async (req: Request, res: Response) => {
     const startAfterDoc = req.query.startAfterDoc as string | undefined;
 
     // Obtener los tags de los parámetros de consulta y concatenarlos en un solo string
-    const tags = req.query.tags as string[];
+    const tagsQuery = req.query.tags as string;
+    const tags = tagsQuery ? tagsQuery.split(",") : [];
 
     console.log("tags:", tags);
 
@@ -327,7 +328,7 @@ const all = async (req: Request, res: Response) => {
 
     // Filtrar por tags
     if (tags.length > 0) {
-      query = query.where("tags", "==", tags);
+      query = query.where("tags", "array-contains-any", tags);
     }
 
     if (startAfterDoc) {
