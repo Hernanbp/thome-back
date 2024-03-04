@@ -311,7 +311,48 @@ const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
+const all = async (req: Request, res: Response) => {
+  try {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+    const field = req.query.field || "price.ars";
+    const startAfterDoc = req.query.startAfterDoc as string | undefined;
+
+    // Obtener los tags de los parámetros de consulta y concatenarlos en un solo string
+    const tags = req.query.tags as string[];
+
+    console.log("tags:", tags);
+
+    let query = propertyRef.orderBy(field.toString()).limit(pageSize);
+
+    // Filtrar por tags
+    if (tags.length > 0) {
+      query = query.where("tags", "==", tags);
+    }
+
+    if (startAfterDoc) {
+      const startAfterSnapshot = await propertyRef.doc(startAfterDoc).get();
+      query = query.startAfter(startAfterSnapshot);
+    } else if (page > 1) {
+      const startAt = (page - 1) * pageSize;
+      query = query.startAt(startAt);
+    }
+
+    const querySnapshot = await query.get();
+    let properties = querySnapshot.docs.map((doc: any) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    res.json({ properties, nextPage: querySnapshot.docs.length === pageSize });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 export {
+  all,
   updateProperty,
   createProperty,
   getAllProperties,

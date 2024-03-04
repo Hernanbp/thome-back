@@ -164,6 +164,7 @@ const updateUser = async (req: Request, res: Response) => {
       registrationNumber: req.body.registrationNumber,
       phoneNumber: req.body.phoneNumber,
       address: req.body.address,
+      alias: req.body.address,
     };
 
     // Remove properties with undefined values to avoid overwriting with undefined
