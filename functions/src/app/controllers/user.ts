@@ -26,6 +26,10 @@ const createUser = async (req: Request, res: Response) => {
 
   const db = await InitFirebase().firestore();
 
+  const userRef = db.collection("users").doc();
+
+  const userId = userRef.id;
+
   let userRefData: Partial<User> = {
     email: email,
     name: name,
@@ -33,22 +37,16 @@ const createUser = async (req: Request, res: Response) => {
     phoneNumber: phoneNumber,
     roles: roles,
     status: "COMPLETED",
+    id: userId,
   };
 
-  console.log(userRefData);
-
   if (roles.includes("OWNER")) {
-    userRefData = {
-      ...userRefData,
-      registrationNumber: registrationNumber,
-      address: address,
-      alias: alias,
-    };
+    userRefData.registrationNumber = registrationNumber;
+    userRefData.address = address;
+    userRefData.alias = alias;
   }
 
-  const userRef = await db.collection("users").add(userRefData);
-
-  const userId = userRef.id;
+  await userRef.set(userRefData);
 
   const data = { email, status, roles, id: userId };
 
